@@ -24,6 +24,8 @@ namespace _3D_Reconstruction
             infoObj.M11 = moment.M11;
             infoObj.M20 = moment.M20;
             infoObj.M02 = moment.M02;
+            infoObj.WidthImg = bitmap.Width;
+            infoObj.HeightImg = bitmap.Height;
             return infoObj;
         }
     }

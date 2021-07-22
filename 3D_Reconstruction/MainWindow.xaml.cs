@@ -50,13 +50,11 @@ namespace _3D_Reconstruction
                 device = SetModel(openFileDialog.FileName);
                 TranslateTransform3D myTranslate = new TranslateTransform3D(0, 0, 0);
                 device.Transform = myTranslate;
-
                 device3D.Content = device;
-
                 viewPort3d.Children.Add(device3D);
                 viewPort3d.Children.Add(new SunLight());
                 viewPort3d.ZoomExtents();
-                viewPort3d.SetView(new Point3D(0,0,10), new Vector3D(0, 0, -1),
+                viewPort3d.SetView(new Point3D(0, 0, 7), new Vector3D(0, 0, -1),
                     new Vector3D(0, 1, 0), 1000);
                 viewPort3d.CameraController.AddZoomForce(-0.3);
             }
@@ -121,7 +119,7 @@ namespace _3D_Reconstruction
             var info = position.CalculateInfo(bitmap);
 
             #region Вывод информации
-            TextBlock.Text= "Координаты центра: "+Environment.NewLine+
+            TextBlock.Text = "Координаты центра: " + Environment.NewLine +
                 +info.CenterX +
                 " : "
                 + info.CenterY + Environment.NewLine +
@@ -139,6 +137,46 @@ namespace _3D_Reconstruction
         private void Reconstruction_Click(object sender, RoutedEventArgs e)
         {
 
+            viewPort3d.Children.Clear();
+            ModelVisual3D model = new ModelVisual3D();
+            #region Повотор модели на основе изображения
+            #endregion
+
+            PositionObj position = new PositionObj();
+            var info = position.CalculateInfo(bitmap);
+            var x = info.CenterX - (info.WidthImg / 2);
+            var y = info.CenterY - (info.HeightImg / 2);
+            viewPort3d.Height = info.HeightImg;
+            viewPort3d.Width = info.WidthImg;
+            model = TransformModel(device3D, new Point3D(x/100, y/100, 0));
+            viewPort3d.Children.Add(new SunLight());
+            viewPort3d.Children.Add(RotateModelBaseImage(model, info.Angle));
+            device3D = model;
+            viewPort3d.CameraController.AddZoomForce(-3);
+        }
+        private ModelVisual3D TransformModel(ModelVisual3D model, Point3D point)
+        {
+            var myTransform = new Transform3DGroup();
+            TranslateTransform3D myTranslate = new TranslateTransform3D(point.X, point.Y, point.Z);//перемещение модели
+            myTransform.Children.Add(myTranslate);
+            model.Transform = myTransform;
+            return model;
+        }
+        /// <summary> Поворот модели на определенный градус </summary>
+        private ModelVisual3D RotateModelBaseImage(ModelVisual3D model, double angle)
+        {
+            var transform = new RotateTransform3D();
+            transform.Rotation = new AxisAngleRotation3D(new Vector3D(0, 0, 1), angle);
+            model.Transform = transform;
+            return model;
+        }
+        /// <summary> Поворот модели по проекциям </summary>
+        private ModelVisual3D RotateModel(Vector3D axis)
+        {
+            var matrix = device3D.Transform.Value;
+            matrix.Rotate(new Quaternion(axis, 90));
+            device3D.Transform = new MatrixTransform3D(matrix);
+            return device3D;
         }
     }
 }
